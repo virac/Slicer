@@ -16,22 +16,24 @@ public:
 class FileParserLetter: public Letter {
 public:
 	static std::string ID;
+	FileParserLetter() :
+			blockSize(0) {
+	}
 	~FileParserLetter() {
 	}
-	;
 	std::string filename;
+	int blockSize;
 };
 class ParsedBlockLetter: public Letter {
 public:
 	static std::string ID;
 	ParsedBlockLetter() :
-			block(NULL) {
+			offset(0), size(0), block(NULL) {
 	}
 	~ParsedBlockLetter() {
 		if (block != NULL)
 			delete block;
 	}
-	;
 	std::string origFile;
 	int offset;
 	int size;
@@ -41,7 +43,7 @@ class DataParserLetter: public Letter {
 public:
 	static std::string ID;
 	DataParserLetter() :
-			dataBlock(NULL) {
+			size(0), dataBlock(NULL) {
 	}
 	;
 	~DataParserLetter() {

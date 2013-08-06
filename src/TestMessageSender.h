@@ -6,6 +6,7 @@
 class TestMessageSender1: public Kernal::MessageHandlerClient {
 public:
 	TestMessageSender1();
+	~TestMessageSender1() {};
 protected:
 private:
 	void cb(Kernal::MessageHandlerArg* arg);
@@ -14,6 +15,7 @@ private:
 class TestMessageSender2: public Kernal::MessageHandlerClient {
 public:
 	TestMessageSender2();
+	~TestMessageSender2() {};
 protected:
 private:
 	void cb(Kernal::MessageHandlerArg* arg);
@@ -22,6 +24,7 @@ private:
 class TestMessageSender3: public Kernal::MessageHandlerClient {
 public:
 	TestMessageSender3();
+	~TestMessageSender3() {};
 protected:
 private:
 	void cb(Kernal::MessageHandlerArg* arg);
@@ -30,6 +33,7 @@ private:
 class TestMessageSender4: public Kernal::MessageHandlerClient {
 public:
 	TestMessageSender4();
+	~TestMessageSender4() {};
 protected:
 private:
 	void cb(Kernal::MessageHandlerArg* arg);
@@ -38,7 +42,7 @@ private:
 class TestMessageSender: public Kernal::MessageHandlerClient {
 public:
 	TestMessageSender();
-	~TestMessageSender();
+	~TestMessageSender() {};
 	void Run();
 	bool done;
 protected:

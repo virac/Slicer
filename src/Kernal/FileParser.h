@@ -8,6 +8,7 @@ class FileParser: public Kernal::MessageHandlerClient {
 public:
 	/** Default constructor */
 	FileParser();
+	~FileParser() {};
 	static int MAX_READ;
 
 protected:

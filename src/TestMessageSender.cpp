@@ -21,9 +21,6 @@ TestMessageSender::TestMessageSender() {
 
 }
 
-TestMessageSender::~TestMessageSender() {
-}
-
 void TestMessageSender::Run() {
 	LOG("TestMessageSender::Run");
 	LOG_WRITE("Running");

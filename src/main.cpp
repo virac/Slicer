@@ -18,60 +18,10 @@
 
 int main(int argc, char** argv) {
 	LOG_SET_NAME("Slicer");
-	LOG_SET_LEVEL(Kernal::LOG_LEVEL_DEBUG);
+	LOG_SET_LEVEL(Kernal::LOG_LEVEL_WRITE);
 	//if( LOG_SET_FILE( "log.txt" ) )
 	//      return 1;
-	if (false) {
-		LOG("MAIN");
-
-		Kernal::Directory *dir = NULL;
-		// std::vector<std::string> files;
-
-		dir = new Kernal::Directory();
-
-		Kernal::XMLTree *tree = NULL;
-		tree = new Kernal::XMLTree("root", NULL, NULL);
-
-		dir->DeepScan("L:\\Music", tree);
-
-		std::string input = "";
-		std::string xml_file = "";
-#ifdef DEBUG
-		xml_file += "debug_";
-#endif
-		xml_file += "out.xml";
-		tree->WriteTree(xml_file);
-		input = tree->WriteTree();
-
-		LOG_WARN("Original size is: " + Kernal::ToString(input.size()));
-		LOG_WARN(
-				"Original MD5 is: "
-						+ Kernal::ToString(MD5String(input.c_str())));
-
-		std::string output;
-		size_t compressed_size = snappy::Compress(input.c_str(), input.size(),
-				&output);
-
-		LOG_WARN("Compressed size is: " + Kernal::ToString(output.size()));
-		LOG_WARN(
-				"Compressed MD5 is: "
-						+ Kernal::ToString(MD5String(output.c_str())));
-
-		std::string return_input;
-
-		snappy::Uncompress(output.c_str(), compressed_size, &return_input);
-
-		LOG_WARN(
-				"Unompressed size is: "
-						+ Kernal::ToString(return_input.size()));
-		LOG_WARN(
-				"Unompressed MD5 is: "
-						+ Kernal::ToString(MD5String(return_input.c_str())));
-
-		delete tree;
-		delete dir;
-
-	} else {
+	{
 		LOG("MAIN");
 
 		LOG_WRITE("main");
@@ -109,6 +59,7 @@ int main(int argc, char** argv) {
 		delete tms1;
 		delete tms2;
 		delete tms3;
+		LOG_WRITE("Close..");
 		delete tms4;
 
 		LOG_WRITE("Closed");

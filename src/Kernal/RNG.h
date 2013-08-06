@@ -5,6 +5,7 @@
 namespace Kernal {
 class RNG {
 public:
+	virtual ~RNG() {};
 	virtual Kernal::uint32 Rand() = 0;
 	virtual void Seed(Kernal::uint32 seed) = 0;
 

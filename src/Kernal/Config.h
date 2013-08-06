@@ -17,6 +17,8 @@
 #define TWO_TO_32                   4294967296
 #define ONE_OVER_2_TO_32_PLUS_1     2.3283064359965952029459655278022e-10
 #define ONE_OVER_2_TO_32_PLUS_2     2.3283064354544941170818665450989e-10
+#define EPSILON						1e-6
+
 
 #include <climits>
 

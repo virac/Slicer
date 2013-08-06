@@ -92,15 +92,19 @@ void LogServer::Close() {
 }
 
 void LogServer::PushContext(std::string name) {
+#ifdef DEBUG
 	//  this->m_indent++;
 	int id = GetThreadID();
 	this->m_stack[id].push( name );
+#endif
 }
 
 void LogServer::PopContext() {
+#ifdef DEBUG
 	//  this->m_indent--;
 	int id = GetThreadID();
 	this->m_stack[id].pop();
+#endif
 }
 
 void LogServer::Out(std::string tag, std::string label, std::string msg) {

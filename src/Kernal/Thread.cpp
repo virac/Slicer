@@ -33,11 +33,11 @@ int GetThreadID(THREAD_TYPE thread) {
 }
 
 Thread::Thread(ThreadFuncion function, ThreadData *data_In) :
-		m_is_active(false), m_function(function), m_data(data_In) {
+		m_thread(NULL), m_is_active(false), m_function(function), m_data(data_In) {
 }
 
 Thread::Thread() :
-		m_is_active(false), m_function(NULL), m_data(NULL) {
+		m_thread(NULL), m_is_active(false), m_function(NULL), m_data(NULL) {
 }
 
 Thread::~Thread() {

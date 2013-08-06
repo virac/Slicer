@@ -19,13 +19,10 @@ MessageHandlerServer* GetMyMessageHandlerServerPtr() {
 
 void CloseMyMessageHandlerServer() {
 	if (g_messageHandlerServer != NULL) {
-		LOG("!*!*!*!*!*!*CloseMyMessageHandlerServer*!*!*!*!*!*!");
+		LOG("CloseMyMessageHandlerServer");
 		LOG_ERROR("Deleting Message Handler Server");
 		delete g_messageHandlerServer;
 		g_messageHandlerServer = NULL;
-		LOG_ERROR(
-				"Message Handler Server is NON-NULL "
-						+ ToString(MyMessageHandlerServerRunning()));
 	}
 }
 
@@ -38,20 +35,17 @@ bool MyMessageHandlerServerRunning() {
 				"There are "
 						+ ToString(g_messageHandlerServer->callbacks.size())
 						+ " callbacks");
-		LOG_WRITE(
+		LOG_DEBUG(
 				"There are "
 						+ ToString(g_messageHandlerServer->messageQueue.size())
 						+ " unsent messages");
-		LOG_WRITE(
+		LOG_DEBUG(
 				"There are "
 						+ ToString(
 								g_messageHandlerServer->messageThreads.size())
 						+ " threads");
 		toReturn = (g_messageHandlerServer->callbacks.size() != 0);
 	} else {
-		LOG("MyMessageHandlerServerRunning");
-		LOG_ERROR("Im melting... melting.. melti.");
-		LOG_STACK;
 	}
 	return toReturn;
 }
@@ -85,31 +79,31 @@ std::string GetMessage(unsigned int id) {
 }
 //
 MessageHandlerServer::MessageHandlerServer() :
-		maxTreads(1), usedThreads(0) {
+		maxTreads(4), usedThreads(0) {
 }
 
 MessageHandlerServer::~MessageHandlerServer() {
 	LOG("MessageHandlerServer::~MessageHandlerServer");
 	{
-		LOG_WRITE("Locking Map");
+		LOG_DEBUG("Locking Map");
 		Lock lock(this->mapProtection);
 		MessageHandlerCBGroup *cbItem;
-		LOG_WRITE(
+		LOG_DEBUG(
 				"There are " + ToString(this->callbacks.size())
 						+ " groups to delete");
 		for (MessageHandlerCBListMap::iterator iter = this->callbacks.begin();
 				iter != this->callbacks.end(); iter++) {
 			{
-				LOG_WRITE("Locking Group");
+				LOG_DEBUG("Locking Group");
 				Lock lock(iter->second->groupProtection);
 				cbItem = iter->second; //copy to local item to keep after destuct
 				this->callbacks.erase(iter);
-				LOG_WRITE("Unlocking Group");
+				LOG_DEBUG("Unlocking Group");
 			}
 			delete cbItem;
 			cbItem = NULL;
 		}
-		LOG_WRITE("Unlocking Map");
+		LOG_DEBUG("Unlocking Map");
 	}
 
 	ClearMessages();
@@ -118,10 +112,10 @@ MessageHandlerServer::~MessageHandlerServer() {
 
 void MessageHandlerServer::ClearThreads() {
 	LOG("MessageHandlerServer::ClearThreads");
-	LOG_WRITE("Locking Thread");
+	LOG_DEBUG("Locking Thread");
 	Lock lock(this->threadProtection);
 	MessageHandlerThread *myself = NULL;
-	LOG_WRITE(
+	LOG_DEBUG(
 			"There are " + ToString(this->messageThreads.size())
 					+ " threads to delete");
 	for (std::vector<MessageHandlerThread*>::iterator iter =
@@ -131,10 +125,10 @@ void MessageHandlerServer::ClearThreads() {
 			MessageHandlerThread *t = *iter;
 			t->running = false;
 			if (t->myId == GetThreadID()) {
-				LOG_WRITE("found myslef " + ToString(t->myId));
+				LOG_DEBUG("found myslef " + ToString(t->myId));
 				myself = t;
 			} else {
-				LOG_WRITE("Waiting on thread " + ToString(t->myId));
+				LOG_DEBUG("Waiting on thread " + ToString(t->myId));
 				t->Wait();
 				delete t;
 			}
@@ -142,18 +136,18 @@ void MessageHandlerServer::ClearThreads() {
 	}
 	this->messageThreads.clear();
 	if (myself != NULL) {
-		LOG_WRITE("Waiting on myself " + ToString(myself->myId));
+		LOG_DEBUG("Waiting on myself " + ToString(myself->myId));
 		//  myself->Terminate();
 		delete myself;
 	}
-	LOG_WRITE("Unlocking thread");
+	LOG_DEBUG("Unlocking thread");
 }
 
 void MessageHandlerServer::CancelThreads() {
 	LOG("MessageHandlerServer::CancelThreads");
-	LOG_WRITE("Locking Thread");
+	LOG_DEBUG("Locking Thread");
 	Lock lock(this->threadProtection);
-	LOG_WRITE(
+	LOG_DEBUG(
 			"There are " + ToString(this->messageThreads.size())
 					+ " threads to delete");
 	for (std::vector<MessageHandlerThread*>::iterator iter =
@@ -164,14 +158,14 @@ void MessageHandlerServer::CancelThreads() {
 			t->running = false;
 		}
 	}
-	LOG_WRITE("Unlocking thread");
+	LOG_DEBUG("Unlocking thread");
 }
 
 void MessageHandlerServer::ClearMessages() {
 	Lock lock(this->messageProtection);
 	LOG("MessageHandlerServer::ClearMessages");
-	LOG_WRITE("Locking message");
-	LOG_WRITE(
+	LOG_DEBUG("Locking message");
+	LOG_DEBUG(
 			"There are " + ToString(this->messageQueue.size())
 					+ " unsent messages to delete");
 	while (!this->messageQueue.empty()) {
@@ -180,13 +174,13 @@ void MessageHandlerServer::ClearMessages() {
 		this->messageQueue.pop();
 		delete arg;
 	}
-	LOG_WRITE("UNlocking message");
+	LOG_DEBUG("UNlocking message");
 }
 
 void MessageHandlerServer::RegisterCB(MessageHandlerCBHandle callbackHandle,
 		int message_type) {
 	LOG("MessageHandlerServer::RegisterCB");
-	LOG_WRITE(
+	LOG_DEBUG(
 			"Registering " + GetMessage(message_type) + " to callback " + ToString(callbackHandle.handle));
 	Lock lock(this->mapProtection);
 	if (this->callbacks.find(message_type) == this->callbacks.end()) {
@@ -201,7 +195,7 @@ void MessageHandlerServer::RegisterCB(MessageHandlerCBHandle callbackHandle,
 void MessageHandlerServer::UnregisterCB(MessageHandlerCBHandle callbackHandle,
 		int message_type) {
 	LOG("MessageHandlerServer::UnregisterCB");
-	LOG_WRITE("Locking Map");
+	LOG_DEBUG("Locking Map");
 	Lock lock(this->mapProtection);
 	MessageHandlerCBGroup *cbItem = NULL;
 	MessageHandlerCBListMap::iterator exists = this->callbacks.find(
@@ -209,7 +203,7 @@ void MessageHandlerServer::UnregisterCB(MessageHandlerCBHandle callbackHandle,
 	if (exists != this->callbacks.end()) {
 		cbItem = exists->second; //copy to local item to keep after destuct
 
-		LOG_WRITE("Group protection locked for " + GetMessage(message_type));
+		LOG_DEBUG("Group protection locked for " + GetMessage(message_type));
 		Lock lock(cbItem->groupProtection);
 		//this->callbacks.erase(exists); //found the list now need to find the correct entry in the list
 		bool found = false;
@@ -228,7 +222,7 @@ void MessageHandlerServer::UnregisterCB(MessageHandlerCBHandle callbackHandle,
 							+ " but could not find the handle");
 			return;
 		}
-		LOG_WRITE("Group protection UNLOCKED");
+		LOG_DEBUG("Group protection UNLOCKED");
 	} else {
 		LOG("MessageHandlerServer::UnregisterCB");
 		LOG_WARN("Coudld not find message ID " + ToString(message_type));
@@ -239,7 +233,7 @@ void MessageHandlerServer::UnregisterCB(MessageHandlerCBHandle callbackHandle,
 		cbItem = NULL;
 		this->callbacks.erase(exists);
 	}
-	LOG_WRITE("Unlocking map");
+	LOG_DEBUG("Unlocking map");
 }
 
 bool MessageHandlerServer::Send() {
@@ -252,46 +246,47 @@ bool MessageHandlerServer::Send() {
 				return false;
 			}
 
-			LOG_WRITE("Thread to use.");
+			LOG_DEBUG("Thread to use.");
 			message = this->messageQueue.top();
 			if (message == NULL) {
-				LOG_WRITE("Queue is empty");
+				LOG_DEBUG("Queue is empty");
 				return false;
 			} else {
-				LOG_WRITE(
+				LOG_DEBUG(
 						"Message to send is of type \"" + Kernal::GetMessage(message->message_type) + "\"");
 				this->messageQueue.pop();
 			}
 		}
 		MessageHandlerThread *mailThread = NULL;
 		{
-			LOG_WRITE("Locking threadProtection*()%&#$)%(@#");
+			LOG_DEBUG("Locking threadProtection");
 			Lock lock(this->threadProtection);
 			for (std::vector<MessageHandlerThread*>::iterator iter =
 					this->messageThreads.begin();
 					iter != this->messageThreads.end(); iter++) {
-				LOG_WRITE(
+				LOG_DEBUG(
 						"Locking thead action for thread:"
 								+ ToString((*iter)->myId));
 				(*iter)->action.Lock();
 				if (mailThread == NULL && (*iter)->running == true
 						&& (*iter)->processing == false) {
-					LOG_WRITE(
+					LOG_DEBUG(
 							"Found thread to reuse :"
 									+ ToString((*iter)->myId));
 					mailThread = *iter;
-					LOG_WRITE(
+					LOG_DEBUG(
 							"Unlocking thead action for thread:"
 									+ ToString((*iter)->myId));
+					(*iter)->action.Unlock();
 					break;
 				}
 				(*iter)->action.Unlock();
-				LOG_WRITE(
+				LOG_DEBUG(
 						"Unlocking thread action for thread:"
 								+ ToString((*iter)->myId));
 			}
 			if (mailThread == NULL) {
-				LOG_WRITE(
+				LOG_DEBUG(
 						"No available threads but we are allowed to create more.");
 				mailThread = new MessageHandlerThread();
 				mailThread->action.Lock();
@@ -300,10 +295,10 @@ bool MessageHandlerServer::Send() {
 			} else {
 				mailThread->action.Lock();
 			}
-			LOG_WRITE("Locking threadProtection*()%&#$)%(@#");
+			LOG_DEBUG("Locking threadProtection");
 		}
 		{
-			LOG_WRITE(
+			LOG_DEBUG(
 					"Locking thread action for thread:"
 							+ ToString(mailThread->myId));
 //            Lock lockAction(mailThread->action);
@@ -313,14 +308,14 @@ bool MessageHandlerServer::Send() {
 			this->usedThreads++;
 			mailThread->processing = true;
 			mailThread->action.Unlock();
-			LOG_WRITE("Starting thread:" + ToString(mailThread->myId));
-			LOG_WRITE(
+			LOG_DEBUG("Starting thread:" + ToString(mailThread->myId));
+			LOG_DEBUG(
 					"Unlocking thread action for thread:"
 							+ ToString(mailThread->myId));
 		}
 		return true;
 	}
-	LOG_WRITE("No thread to use.");
+	LOG_DEBUG("No thread to use.");
 	return false;
 }
 
@@ -346,13 +341,13 @@ void MessageHandlerClient::Init(std::vector<std::string> &messages) {
 	handle.handle = this;
 
 	if (this->registeredMessages.empty()) {
-		LOG_WRITE("Registering shudown at " + ToString(this));
+		LOG_DEBUG("Registering shudown at " + ToString(this));
 		int id = RegisterMessage(MessageHandlerServer::ShutDownMessage);
 		this->registeredMessages.push_back(id);
 		GetMyMessageHandlerServerPtr()->RegisterCB(handle, id);
 	}
 
-	LOG_WRITE("Registering " + ToString(messages.size()) + " messages");
+	LOG_DEBUG("Registering " + ToString(messages.size()) + " messages");
 	for (std::vector<std::string>::iterator iter = messages.begin();
 			iter != messages.end(); iter++) {
 		int id = Kernal::RegisterMessage(*iter);
@@ -367,6 +362,7 @@ MessageHandlerClient::~MessageHandlerClient() {
 
 void MessageHandlerClient::Finish() {
 	LOG("MessageHandlerClient::Finish");
+	LOG_WRITE("Hello");
 	if (MyMessageHandlerServerRunning()) {
 		{
 			LOG_WRITE(
@@ -407,27 +403,27 @@ void MessageHandlerClient::MessageHandlerMailBox(void* handle,
 	MessageHandlerClient *self =
 			reinterpret_cast<MessageHandlerClient *>(handle);
 	if (arg->message_type == shutdownMessageId) {
-		LOG_WRITE("Intercepted shutdown message for (" + ToString(self) + ")");
+		LOG_DEBUG("Intercepted shutdown message for (" + ToString(self) + ")");
 		self->Finish();
 	} else {
-		LOG_WRITE("Calling callback.");
+		LOG_DEBUG("Calling callback.");
 		self->cb(arg);
 	}
 }
 
 void MessageHandlerClient::Send(MessageHandlerArg *arg) {
 	LOG("MessageHandlerClient::Send");
-	LOG_WRITE(
+	LOG_DEBUG(
 			"Queueing message of type \"" + Kernal::GetMessage(arg->message_type) + "\" to send");
 	{
 		Lock lock(GetMyMessageHandlerServerPtr()->messageProtection);
 
-		LOG_WRITE(
-				"Got Lock for message Protection *%*%*%*%*%*%*#*#*#(#*#*#*#*#(#(#*#*#*#*#**#*#*#*#*#*#*#**#*#*#$*&#(*$&*#(*%&(#*&%(*#&%(*#&%");
+		LOG_DEBUG(
+				"Got Lock for message Protection");
 
 		GetMyMessageHandlerServerPtr()->messageQueue.push(arg);
-		LOG_WRITE(
-				"Giving up Lock for message Protection *%*%*%*%*%kljas;dfgjsdhfgohsdofghoiehrgioheroigh*&#(*$&*#(*%&(#*&%(*#&%(*#&%");
+		LOG_DEBUG(
+				"Giving up Lock for message Protection");
 	}
 	GetMyMessageHandlerServerPtr()->Send();
 
@@ -441,7 +437,7 @@ void MessageHandlerClient::RegisterComm(std::string recv_msg,
 	handle.cb = MessageHandlerMailBox;
 	handle.handle = this;
 
-	LOG_WRITE("Registering " + recv_msg + " at " + ToString(this));
+	LOG_DEBUG("Registering " + recv_msg + " at " + ToString(this));
 	this->comm_matrix[recv_msg] = send_msg;
 	int id = RegisterMessage(recv_msg);
 	this->registeredMessages.push_back(id);

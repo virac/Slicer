@@ -30,7 +30,7 @@ struct MessageHandlerArg {
 	bool operator<(const MessageHandlerArg &right) const {
 		return priority < right.priority
 				|| (priority == right.priority && blocking < right.blocking);
-	}
+	}//TODO: needs fixing
 	;
 };
 typedef void (*MessageHandlerCB)(void *, MessageHandlerArg*);
@@ -91,7 +91,7 @@ class MessageHandlerClient {
 public:
 	void Finish();
 	/** Default destructor */
-	~MessageHandlerClient();
+	virtual ~MessageHandlerClient();
 
 	void Send(MessageHandlerArg *arg);
 	static void MessageHandlerMailBox(void* handle, MessageHandlerArg *arg);

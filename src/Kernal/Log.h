@@ -31,9 +31,14 @@ void CloseMyLogServer();
 #define LOG_SET_LEVEL(x) Kernal::GetMyLogServerPtr()->SetLevel( x )
 
 #define LOG(x) Kernal::LogClient log_client( Kernal::GetMyLogServerPtr(), x )
-
+#ifdef DEBUG
 #define LOG_TRACE(x,y) if( Kernal::GetMyLogServerPtr()->GetLogLevel() <= Kernal::LOG_LEVEL_TRACE ) this->m_LogServer->Out("TRACE",x,y)
 #define LOG_DEBUG(x) if( Kernal::GetMyLogServerPtr()->GetLogLevel() <= Kernal::LOG_LEVEL_DEBUG ) log_client.debug(x)
+#else
+#define LOG_TRACE(x,y)
+#define LOG_DEBUG(x)
+#endif
+
 #define LOG_WRITE(x) if( Kernal::GetMyLogServerPtr()->GetLogLevel() <= Kernal::LOG_LEVEL_WRITE ) log_client.write(x)
 #define LOG_WARN(x)  if( Kernal::GetMyLogServerPtr()->GetLogLevel() <= Kernal::LOG_LEVEL_WARN  ) log_client.warn(x)
 #define LOG_ERROR(x) if( Kernal::GetMyLogServerPtr()->GetLogLevel() <= Kernal::LOG_LEVEL_ERROR ) log_client.error(x)
